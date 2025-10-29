@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paul.ai - Google Local Guide</title>
+
+    <meta property="og:title" content="Paul.ai - Google Local Guide Level 9" />
+    <meta property="og:description" content="พบกับ Paul (Paul.ai) - Google Local Guide Level 9 ที่มีผู้เข้าชมกว่า 60 ล้านวิว!" />
+    <meta property="og:image" content="https://paulai.site/dsfdk.jpg" />
+    <meta property="og:url" content="https://paulai.site/" />
+    <meta property="og:type" content="website" /> <style>
+        /* (CSS ส่วนบนเหมือนเดิม) */
+        body { font-family: 'Sarabun', sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; padding: 20px; margin: 0; min-height: 100vh; }
+        .profile-container { background-color: #ffffff; max-width: 450px; width: 100%; border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); padding: 40px; box-sizing: border-box; text-align: center; }
+        .profile-pic { width: 150px; height: 150px; border-radius: 50%; border: 5px solid #007bff; object-fit: cover; margin-bottom: 20px; cursor: pointer; transition: all 0.3s ease; }
+        .profile-pic:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(0,123,255,0.5); }
+        .name { font-size: 2em; font-weight: 700; color: #333; margin: 0; }
+        .title { font-size: 1.2em; font-weight: 500; color: #007bff; margin: 5px 0 0 0; }
+        .stats { font-size: 1.1em; color: #555; margin: 15px 0 30px 0; }
+        .link-button { display: block; width: 100%; padding: 16px; margin-bottom: 15px; box-sizing: border-box; border: none; border-radius: 10px; font-size: 1.1em; font-weight: 600; text-decoration: none; text-align: center; cursor: pointer; transition: all 0.3s ease; }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-primary:hover { background-color: #0056b3; transform: translateY(-2px); }
+        .btn-secondary { background-color: #ffffff; color: #007bff; border: 2px solid #007bff; }
+        .btn-secondary:hover { background-color: #007bff; color: white; transform: translateY(-2px); }
+        .btn-share { background-color: #1877F2; color: white; }
+        .btn-share:hover { background-color: #166FE5; transform: translateY(-2px); }
+        hr { border: 0; height: 1px; background: #e0e0e0; margin: 30px 0; }
+        .section-title { font-size: 1.3em; color: #444; margin-bottom: 20px; }
+        .btn-game { background-color: #2c3e50; color: white; }
+        .btn-game:hover { background-color: #46627f; transform: translateY(-2px); }
+        .stats-counter { background-color: #f9f9f9; border-radius: 10px; padding: 20px; margin-top: -10px; margin-bottom: 30px; text-align: left; }
+        .stats-counter h3 { text-align: center; margin-top: 0; color: #333; }
+        .stats-counter p { font-size: 1em; color: #555; margin: 8px 0; display: flex; justify-content: space-between; }
+        .stats-counter span { font-weight: 700; color: #007bff; min-width: 40px; text-align: right; margin-left: 15px; }
+
+        /* --- (ใหม่) CSS สำหรับส่วน Login --- */
+        #user-info {
+            background-color: #e9f5ff; /* สีฟ้าอ่อน */
+            border: 1px solid #b3d7ff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        #user-info p { margin: 5px 0; font-size: 1.1em; }
+        #user-info span { font-weight: bold; color: #0056b3; }
+        #login-btn { background-color: #1877F2; color: white; } /* สี Facebook */
+        #login-btn:hover { background-color: #166FE5; }
+        #logout-btn { background-color: #dc3545; color: white; } /* สีแดง */
+        #logout-btn:hover { background-color: #c82333; }
+        .hidden { display: none; } /* ซ่อน element */
+        /* ---------------------------------- */
+    </style>
+</head>
+<body>
+
+    <div class="profile-container">
+
+        <div id="user-info" class="hidden"> <p>ยินดีต้อนรับ, <span id="user-name"></span>!</p>
+            <p>ยอด Paul Coin: <span id="paul-balance">0</span> 🪙</p>
+            <button id="logout-btn" class="link-button">ออกจากระบบ</button>
+        </div>
+        <a id="login-btn" href="https://my-game-production-d713.up.railway.app/auth/facebook" class="link-button">
+            <svg style="vertical-align: middle; margin-right: 8px;" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-facebook" viewBox="0 0 16 16">
+                <path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0 0 3.603 0 8.049c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.049H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H10.25V16c3.824-.604 6.75-3.934 6.75-7.951z"/>
+            </svg>
+            เข้าสู่ระบบด้วย Facebook
+        </a>
+        <hr id="login-hr"> <a href="https://www.facebook.com/natheepat.chaica" target="_blank">
+            <img src="dsfdk.jpg" alt="Profile Paul.ai" class="profile-pic">
+        </a>
+        <h1 class="name">Paul (Paul.ai)</h1>
+        <p class="title">Google Local Guide Level 9</p>
+        <p class="stats">🏆 ยอดเข้าชมกว่า 60,000,000 วิว</p>
+
+        <a href="https://www.facebook.com/natheepat.chaica" target="_blank" class="link-button btn-primary">
+            ติดตาม (Follow)
+        </a>
+        <a href="https://www.facebook.com/natheepat.chaica" target="_blank" class="link-button btn-secondary">
+            ทำความรู้จัก
+        </a>
+        <a href="https://www.facebook.com/natheepat.chaica" target="_blank" class="link-button btn-secondary">
+            ข้อมูลเพิ่มเติม
+        </a>
+
+        <button id="shareButton" class="link-button btn-share">แชร์โปรไฟล์นี้</button>
+
+        <div class="stats-counter">
+            <h3>สถิติรวมจากผู้ใช้ทั้งหมด</h3>
+            <p>เข้าชมหน้าแรก: <span id="count-index">Loading...</span></p>
+            <p>เข้าชมเกมทายเลข: <span id="count-game1">Loading...</span></p>
+            <p>เข้าชมเกมจำเสียง: <span id="count-game2">Loading...</span></p>
+            <hr style="margin: 10px 0;">
+            <p>รวมการแชร์: <span id="count-share">Loading...</span></p>
+        </div>
+
+        <hr>
+        <h2 class="section-title">มินิเกม</h2>
+        <a href="game1.html" class="link-button btn-game">🎮 เกมทายตัวเลข</a>
+        <a href="game2.html" class="link-button btn-game">🎨 เกมจำเสียงดนตรี</a>
+        <a href="game3.html" class="link-button btn-game">🤖 เกมจำลอง Algorithm</a>
+
+    </div>
+
+    <script>
+        // ที่อยู่ของ Backend
+        const BACKEND_URL = 'https://my-game-production-d713.up.railway.app';
+
+        // --- Element ที่ใช้บ่อย ---
+        const userInfoDiv = document.getElementById('user-info');
+        const userNameSpan = document.getElementById('user-name');
+        const paulBalanceSpan = document.getElementById('paul-balance');
+        const loginBtn = document.getElementById('login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const loginHr = document.getElementById('login-hr');
+
+        // --- 1. ฟังก์ชันดึงสถิติมาแสดง (GET /stats) ---
+        async function fetchStats() {
+            try {
+                // *** สำคัญ: เพิ่ม credentials: 'include' เพื่อส่ง Cookie ไปด้วย ***
+                const response = await fetch(BACKEND_URL + '/stats', { credentials: 'include' });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const stats = await response.json();
+
+                document.getElementById('count-index').textContent = stats.pageViews_index || 0;
+                document.getElementById('count-game1').textContent = stats.pageViews_game1 || 0;
+                document.getElementById('count-game2').textContent = stats.pageViews_game2 || 0;
+                document.getElementById('count-share').textContent = stats.shareClicks || 0;
+            } catch (error) {
+                console.error('Error fetching stats:', error);
+                document.getElementById('count-index').textContent = "Error";
+                document.getElementById('count-game1').textContent = "Error";
+                document.getElementById('count-game2').textContent = "Error";
+                document.getElementById('count-share').textContent = "Error";
+            }
+        }
+
+        // --- 2. ฟังก์ชันบวกสถิติ (POST /increment) ---
+        async function incrementStat(target) {
+            try {
+                // *** สำคัญ: เพิ่ม credentials: 'include' ***
+                await fetch(BACKEND_URL + '/increment?target=' + target, { method: 'POST', credentials: 'include' });
+                // บวกเสร็จ ดึงสถิติใหม่ (ไม่จำเป็นต้องรอให้บวกเสร็จก็ได้)
+                fetchStats();
+            } catch (error) {
+                console.error('Error incrementing stat:', error);
+            }
+        }
+
+        // --- 3. (ใหม่) ฟังก์ชันเช็คสถานะ Login (GET /api/user) ---
+        async function checkLoginStatus() {
+            try {
+                // *** สำคัญ: เพิ่ม credentials: 'include' เพื่อส่ง Cookie ไปเช็ค ***
+                const response = await fetch(BACKEND_URL + '/api/user', { credentials: 'include' });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+
+                if (data.loggedIn && data.user) {
+                    // --- ถ้า Login อยู่ ---
+                    userNameSpan.textContent = data.user.name;
+                    paulBalanceSpan.textContent = data.user.paulBalance;
+                    userInfoDiv.classList.remove('hidden'); // แสดงข้อมูลผู้ใช้
+                    loginBtn.classList.add('hidden');       // ซ่อนปุ่ม Login
+                    loginHr.classList.remove('hidden');      // แสดงเส้นคั่น
+                } else {
+                    // --- ถ้ายังไม่ได้ Login ---
+                    userInfoDiv.classList.add('hidden');    // ซ่อนข้อมูลผู้ใช้
+                    loginBtn.classList.remove('hidden');    // แสดงปุ่ม Login
+                    loginHr.classList.add('hidden');         // ซ่อนเส้นคั่น
+                }
+            } catch (error) {
+                console.error('Error checking login status:', error);
+                // ถ้าเช็คไม่ได้ ก็ให้แสดงปุ่ม Login ไปก่อน
+                userInfoDiv.classList.add('hidden');
+                loginBtn.classList.remove('hidden');
+                loginHr.classList.add('hidden');
+            }
+        }
+
+        // --- 4. (ใหม่) ฟังก์ชัน Logout (POST /logout) ---
+        async function handleLogout() {
+            try {
+                // *** สำคัญ: เพิ่ม credentials: 'include' เพื่อส่ง Cookie ไปยืนยัน ***
+                const response = await fetch(BACKEND_URL + '/logout', { method: 'POST', credentials: 'include' });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    // Logout สำเร็จ อัปเดต UI ทันที
+                    checkLoginStatus(); // เรียกเช็คสถานะใหม่ (จะซ่อน user info, โชว์ login btn)
+                } else {
+                    alert('Logout failed. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error logging out:', error);
+                alert('Error logging out. Please try again.');
+            }
+        }
+
+        // --- 5. ตอนหน้าเว็บโหลด ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // 5.1 เช็คสถานะ Login ก่อนเสมอ
+            checkLoginStatus();
+
+            // 5.2 ดึงสถิติรวม (และบวกสถิติหน้าแรก ถ้าต้องการ)
+            fetchStats(); // ดึงสถิติมาแสดงก่อน
+            // อาจจะรอสักแปปค่อยบวก
+            setTimeout(() => {
+                incrementStat('pageViews_index');
+            }, 1000); // รอ 1 วินาทีค่อยบวก
+
+            // 5.3 (ใหม่) ผูก Event Listener ให้ปุ่ม Logout
+            logoutBtn.addEventListener('click', handleLogout);
+        });
+
+        // --- 6. ปุ่มแชร์ ---
+        document.getElementById('shareButton').addEventListener('click', function() {
+            // เรียก Backend เพื่อบวกเลขอย่างเดียว
+            fetch(BACKEND_URL + '/increment?target=shareClicks', { method: 'POST', credentials: 'include' });
+
+            // เปิดหน้าต่างแชร์
+            const urlToShare = 'https://paulai.site/';
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(urlToShare)}`, '_blank');
+        });
+
+    </script>
+    </body>
+</html>

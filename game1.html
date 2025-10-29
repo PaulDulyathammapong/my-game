@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เกมทายตัวเลข</title>
+    
+    <meta property="og:title" content="เกมทายตัวเลขสุดท้าทาย!" />
+    <meta property="og:description" content="มาลองทายตัวเลข 1-100 แข่งกัน!" />
+    <meta property="og:url" content="https://paulai.site/game1.html" />
+    
+    <style>
+        /* (CSS ทั้งหมดเหมือนเดิม) */
+        body { font-family: 'Sarabun', sans-serif; background-color: #f4f4f4; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .game-container { background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); text-align: center; width: 320px; }
+        h1 { color: #333; margin-top: 0; }
+        p { color: #555; font-size: 1.1em; }
+        #guessInput { width: 80px; padding: 10px; font-size: 1.2em; text-align: center; border: 2px solid #ddd; border-radius: 5px; margin: 15px 0; }
+        #guessButton { background-color: #007bff; color: white; border: none; padding: 12px 20px; font-size: 1em; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease; }
+        #guessButton:hover { background-color: #0056b3; }
+        #message { font-size: 1.2em; font-weight: bold; margin-top: 20px; min-height: 1.5em; }
+        .button-row { margin-top: 15px; display: none; }
+        #resetButton, #shareButton { color: white; border: none; padding: 10px 15px; font-size: 0.9em; border-radius: 5px; cursor: pointer; margin: 5px; }
+        #resetButton { background-color: #6c757d; }
+        #resetButton:hover { background-color: #5a6268; }
+        #shareButton { background-color: #1877F2; }
+        #shareButton:hover { background-color: #166FE5; }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <h1>เกมทายตัวเลข</h1>
+        <p>ผมสุ่มตัวเลข 1 - 100 ไว้แล้ว<br>ลองทายดูสิ!</p>
+        <input type="number" id="guessInput" min="1" max="100">
+        <button id="guessButton">ทายผล</button>
+        <p id="message"></p>
+        <div class="button-row" id="endGameButtons">
+            <button id="resetButton">เล่นอีกครั้ง</button>
+            <button id="shareButton">แชร์ไป Facebook</button>
+        </div>
+    </div>
+
+    <script>
+        // ที่อยู่ของ Backend ที่เราเพิ่งสร้าง
+        const BACKEND_URL = 'https://my-game-production-d713.up.railway.app';
+        
+        // --- SCRIPT 1: (แทนที่) นับการเข้าชมหน้านี้ ---
+        (function() {
+            // ส่งสัญญาณ POST ไปบวกเลข 1 ครั้ง (ไม่ต้องรอผล)
+            fetch(BACKEND_URL + '/increment?target=pageViews_game1', { method: 'POST' });
+        })();
+        // ======================================
+    </script>
+    
+    <script>
+        // --- ส่วน JavaScript ของเกม (เหมือนเดิม) ---
+        const guessInput = document.getElementById('guessInput');
+        const guessButton = document.getElementById('guessButton');
+        const message = document.getElementById('message');
+        const endGameButtons = document.getElementById('endGameButtons');
+        const resetButton = document.getElementById('resetButton');
+        const shareButton = document.getElementById('shareButton');
+        let secretNumber;
+        let attemptCount;
+        function initGame() {
+            secretNumber = Math.floor(Math.random() * 100) + 1;
+            attemptCount = 0;
+            message.textContent = '';
+            message.style.color = 'black';
+            guessInput.value = '';
+            guessInput.disabled = false;
+            guessButton.disabled = false;
+            endGameButtons.style.display = 'none';
+        }
+        function checkGuess() {
+            const userGuess = parseInt(guessInput.value);
+            if (isNaN(userGuess) || userGuess < 1 || userGuess > 100) {
+                message.textContent = 'กรุณาใส่ตัวเลข 1 ถึง 100';
+                message.style.color = 'red';
+                return;
+            }
+            attemptCount++;
+            if (userGuess === secretNumber) {
+                message.textContent = `ถูกต้อง! 🎉 คุณทายถูกใน ${attemptCount} ครั้ง`;
+                message.style.color = 'green';
+                guessInput.disabled = true;
+                guessButton.disabled = true;
+                endGameButtons.style.display = 'block';
+            } else if (userGuess < secretNumber) {
+                message.textContent = 'น้อยไป! ลองอีกที';
+                message.style.color = '#dc3545';
+            } else {
+                message.textContent = 'มากไป! ลองอีกที';
+                message.style.color = '#ffc107';
+            }
+        }
+        
+        // --- ฟังก์ชันแชร์ (แก้ไขเล็กน้อย) ---
+        function shareToFacebook() {
+            // === SCRIPT 2: (แทนที่) นับการแชร์ ===
+            fetch(BACKEND_URL + '/increment?target=shareClicks', { method: 'POST' });
+            // ======================================
+            
+            const urlToShare = 'https://paulai.site/game1.html';
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(urlToShare)}`, '_blank');
+        }
+        
+        guessButton.addEventListener('click', checkGuess);
+        guessInput.addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') { checkGuess(); }
+        });
+        resetButton.addEventListener('click', initGame);
+        shareButton.addEventListener('click', shareToFacebook);
+        initGame();
+    </script>
+</body>
+</html>

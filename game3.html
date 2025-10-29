@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เกมจำลอง Algorithm (V3: No Energy)</title>
+
+    <meta property="og:title" content="เกมจำลอง Algorithm Race (V3)" />
+    <meta property="og:description" content="ไม่มี Energy! ยิ่งคลิกมั่ว ยิ่งโดนปิดกั้น!" />
+    <meta property="og:url" content="https://paulai.site/game3.html" />
+
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif; background-color: #1a1a2e; color: #e0e0e0;
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box;
+        }
+        #game-container {
+            width: 100%; max-width: 800px; background-color: #2a2a4e;
+            border-radius: 15px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            padding: 25px; box-sizing: border-box;
+        }
+        #status-bar {
+            display: flex; justify-content: space-around; flex-wrap: wrap;
+            background-color: #1f1f3d; border-radius: 10px; padding: 15px; margin-bottom: 20px;
+        }
+        .status-item { text-align: center; margin: 5px 10px; }
+        .status-item h2 { margin: 0 0 5px 0; font-size: 1.1em; color: #a0a0ff; }
+        .status-item p { margin: 0; font-size: 1.5em; font-weight: 700; }
+        /* (ลบ Energy Counter) */
+        #score-counter { color: #2ecc71; }
+        
+        /* (เปลี่ยนชื่อ Consistency Bar) */
+        #response-rate-bar {
+            width: 100%; background-color: #444; height: 10px;
+            border-radius: 5px; margin-top: 5px;
+        }
+        #response-rate-fill {
+            width: 100%; height: 100%; background-color: #3498db;
+            border-radius: 5px; transition: width 0.3s ease;
+        }
+
+        #ai-pool-container {
+            display: flex; flex-wrap: wrap; justify-content: center;
+            gap: 12px; min-height: 200px; max-height: 400px; overflow-y: auto;
+            background-color: #1f1f3d; padding: 15px; border-radius: 10px; border: 1px solid #444;
+        }
+        .ai-card {
+            width: 60px; height: 60px; border-radius: 50%; background-color: #4a4a70;
+            cursor: pointer; transition: all 0.2s ease;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 1.8em; font-weight: bold; border: 4px solid #888; position: relative;
+        }
+        .ai-card:hover { transform: scale(1.1); }
+        .ai-card.good { border-color: #2ecc71; }
+        .ai-card.medium { border-color: #f1c40f; }
+        .ai-card.bad { border-color: #e74c3c; }
+        .ai-card span { transition: transform 0.2s ease; }
+        .streak-counter {
+            position: absolute; bottom: -5px; right: -5px; background-color: #e74c3c;
+            color: white; border-radius: 50%; width: 20px; height: 20px;
+            font-size: 0.6em; line-height: 20px; text-align: center; font-weight: bold;
+            border: 2px solid white; display: none;
+        }
+        .ai-card.visited {
+            opacity: 0.3; cursor: not-allowed; transform: scale(0.9); background-color: #333;
+        }
+
+        #log-container {
+            background-color: #1f1f3d; border: 1px solid #444; padding: 15px;
+            border-radius: 10px; margin-top: 20px; height: 150px; overflow-y: scroll; font-size: 0.9em;
+        }
+        #log-container p { margin: 5px 0; }
+        .log-good { color: #2ecc71; }
+        .log-bad { color: #e74c3c; }
+        .log-info { color: #f1c40f; }
+        .log-time { color: #3498db; }
+
+        #next-day-btn {
+            width: 100%; padding: 15px; font-size: 1.2em; font-weight: bold;
+            background-color: #e74c3c; color: white; border: none;
+            border-radius: 10px; cursor: pointer; margin-top: 20px;
+            display: block; /* (แสดงเลย) */
+            transition: background-color 0.3s;
+        }
+        #next-day-btn:hover { background-color: #c0392b; }
+
+        #game-over-screen { display: none; text-align: center; }
+        #game-over-screen h1 { font-size: 2.5em; color: #2ecc71; }
+        #final-stats p { font-size: 1.2em; }
+        #final-stats span { font-weight: bold; font-size: 1.5em; }
+        #final-summary { margin-top: 20px; }
+        #final-summary p { font-size: 1.1em; }
+        #final-personality {
+            font-size: 1.1em; font-style: italic; color: #f1c40f; margin-top: 20px;
+            padding: 15px; background-color: #1f1f3d; border-radius: 10px;
+        }
+        #restart-btn, #share-btn {
+            padding: 15px 30px; font-size: 1em; font-weight: bold;
+            border: none; border-radius: 10px; cursor: pointer; margin: 10px;
+        }
+        #restart-btn { background-color: #3498db; color: white; }
+        #share-btn { background-color: #1877F2; color: white; }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        
+        <div id="game-play-screen">
+            <div id="status-bar">
+                <div class="status-item">
+                    <h2>DAY</h2>
+                    <p><span id="day-counter">1</span> / 7</p>
+                </div>
+                <div class="status-item">
+                    <h2>SCORE</h2>
+                    <p><span id="score-counter">0</span></p>
+                </div>
+                <div class="status-item" style="width: 100%; text-align: left; margin-top: 10px;">
+                    <h2 style="text-align: center; margin-bottom: 8px;">Response Rate (อัตราตอบกลับ)</h2>
+                    <div id="response-rate-bar">
+                        <div id="response-rate-fill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 style="text-align: center; margin-top: 0;">AI Pool (คนที่สุ่มเจอวันนี้)</h3>
+            <div id="ai-pool-container"></div>
+            <div id="log-container"></div>
+            <button id="next-day-btn">จบวัน</button> </div>
+
+        <div id="game-over-screen">
+            <h1>จบเกม!</h1>
+            <div id="final-stats">
+                <p>คะแนนปฏิสัมพันธ์รวม: <span id="final-score" class="log-good">0</span> RP</p>
+                <h3>สรุปการปฏิสัมพันธ์ (นับจาก AI ที่สุ่มเจอ):</h3>
+                <p>เลือกคุย AI (เริ่ม) ดี: <span id="final-good">0</span> ครั้ง</p>
+                <p>เลือกคุย AI (เริ่ม) กลาง: <span id="final-medium">0</span> ครั้ง</p>
+                <p>เลือกคุย AI (เริ่ม) แย่: <span id="final-bad">0</span> ครั้ง</p>
+            </div>
+            <div id="final-summary">
+                <h3>สรุปความสัมพันธ์:</h3>
+                <p class="log-good">AI (เริ่มแย่) ที่กลายมา "ชอบ" คุณ: <span id="bad-to-good">0</span></p>
+                <p class="log-bad">AI (เริ่มดี) ที่กลายมา "ไม่ชอบ" คุณ: <span id="good-to-bad">0</span></p>
+                <p class="log-info">เพื่อนแท้ (Streak 3+ วัน): <span id="true-friends">0</span></p>
+            </div>
+            <p id="final-personality">...</p>
+            <button id="restart-btn">เล่นอีกครั้ง</button>
+            <button id="share-btn">แชร์ผลลัพธ์</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. Game Configuration (ตั้งค่าเกม) ---
+        const config = {
+            MAX_DAYS: 7,
+            SCORE_VISIT: 1,
+            STREAK_BONUS: { 1: 100, 2: 200, 3: 400, 4: 800, 5: 800, 6: 800, 7: 800 },
+            // (ใหม่) การจำลอง "เวลา" จากลำดับการคลิก
+            MORNING_CLICK_LIMIT: 10, // 10 คลิกแรก = เช้า
+            
+            // (เหมือนเดิม) การจัดพูล AI (Base Pool)
+            POOL_CONFIG: [
+                { total: 20, good: 2, medium: 3 },
+                { total: 25, good: 4, medium: 5 },
+                { total: 25, good: 6, medium: 6 },
+                { total: 30, good: 8, medium: 8 },
+                { total: 30, good: 10, medium: 10 },
+                { total: 30, good: 15, medium: 10 },
+                { total: 30, good: 20, medium: 10 }
+            ],
+            RELATIONSHIP_CHANGE: {
+                RIGHT_TIME: 10,
+                WRONG_TIME: -5,
+                NOT_VISITED: -2
+            },
+            MAX_RELATIONSHIP: 100,
+            MIN_RELATIONSHIP: -100
+        };
+
+        // --- 2. Game State (ตัวแปรสถานะเกม) ---
+        let gameState = {};
+
+        // --- 3. DOM Elements (ตัวแปรชี้ไปที่ HTML) ---
+        const gameContainer = document.getElementById('game-container');
+        const gamePlayScreen = document.getElementById('game-play-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const dayCounter = document.getElementById('day-counter');
+        const scoreCounter = document.getElementById('score-counter');
+        const responseRateFill = document.getElementById('response-rate-fill');
+        const aiPoolContainer = document.getElementById('ai-pool-container');
+        const logContainer = document.getElementById('log-container');
+        const nextDayBtn = document.getElementById('next-day-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const shareBtn = document.getElementById('share-btn');
+
+        // --- 4. Game Functions (ฟังก์ชันหลักของเกม) ---
+
+        /** (ใหม่) สร้างฐานข้อมูล AI 200+ ตัว */
+        function createMasterAiList() {
+            gameState.masterAiList = {};
+            // ดี 40, กลาง 80, แย่ 100 = 220 ตัว
+            for (let i = 0; i < 40; i++) {
+                const id = `g${i}`;
+                gameState.masterAiList[id] = { id: id, initialType: 'good', relationship: 40, preference: 'night', streak: 0 };
+            }
+            for (let i = 0; i < 80; i++) {
+                const id = `m${i}`;
+                gameState.masterAiList[id] = { id: id, initialType: 'medium', relationship: 0, preference: 'any', streak: 0 };
+            }
+            for (let i = 0; i < 100; i++) {
+                const id = `b${i}`;
+                gameState.masterAiList[id] = { id: id, initialType: 'bad', relationship: -40, preference: 'morning', streak: 0 };
+            }
+        }
+
+        /** เริ่มเกมใหม่ทั้งหมด */
+        function initGame() {
+            gameState = {
+                currentDay: 1,
+                totalScore: 0,
+                dailyAiPool: [],
+                playerInteractions: { good: 0, medium: 0, bad: 0 },
+                // (ใหม่) ตัวแปรสำหรับ CS
+                consistencyScore: 1.0, // 1.0 = 100% (เริ่มต้นด้วยค่าดี)
+                dailyVisitedCount: 0,
+                dailyResponseCount: 0,
+                masterAiList: {}
+            };
+            
+            gamePlayScreen.style.display = 'block';
+            gameOverScreen.style.display = 'none';
+            logContainer.innerHTML = '';
+            
+            createMasterAiList();
+            startDay();
+        }
+
+        /** เริ่มวันใหม่ */
+        function startDay() {
+            // (ใหม่) รีเซ็ตตัวนับ CS ประจำวัน
+            gameState.dailyVisitedCount = 0;
+            gameState.dailyResponseCount = 0;
+            
+            generateAiPool();
+            renderPool();
+            updateUI();
+            
+            logMessage(`<strong>--- เริ่มวันที่ ${gameState.currentDay} ---</strong>`);
+            logMessage(`อัตราตอบกลับจากเมื่อวาน: <span class="log-info">${(gameState.consistencyScore * 100).toFixed(0)}%</span>`);
+            logMessage(`สุ่มเจอ AI ${gameState.dailyAiPool.length} คน... (คลิกได้ไม่จำกัด)`, 'log-info');
+            
+            nextDayBtn.style.display = 'block'; // แสดงปุ่มเลย
+        }
+
+        /** (อัปเกรด) สร้างพูล AI ประจำวัน (ใช้ CS ในการลดเกรด) */
+        function generateAiPool() {
+            gameState.dailyAiPool = [];
+            let dayConfig = config.POOL_CONFIG[gameState.currentDay - 1];
+            
+            // (กลไกใหม่) คำนวณจำนวน AI ตาม "Consistency Score" (บทลงโทษ)
+            let cs = gameState.consistencyScore;
+            let numGood = Math.floor(dayConfig.good * cs);
+            let numMedium = Math.floor(dayConfig.medium * cs);
+            let numBad = dayConfig.total - numGood - numMedium; // ที่เหลือคือ AI แย่ทั้งหมด
+            
+            // (ที่เหลือเหมือนเดิม) ดึง AI จาก Master List
+            const availableGood = Object.keys(gameState.masterAiList).filter(k => gameState.masterAiList[k].initialType === 'good');
+            const availableMedium = Object.keys(gameState.masterAiList).filter(k => gameState.masterAiList[k].initialType === 'medium');
+            const availableBad = Object.keys(gameState.masterAiList).filter(k => gameState.masterAiList[k].initialType === 'bad');
+            
+            for(let i=0; i < numGood; i++) gameState.dailyAiPool.push({ id: availableGood[i % availableGood.length], visited: false });
+            for(let i=0; i < numMedium; i++) gameState.dailyAiPool.push({ id: availableMedium[i % availableMedium.length], visited: false });
+            for(let i=0; i < numBad; i++) gameState.dailyAiPool.push({ id: availableBad[i % availableBad.length], visited: false });
+            gameState.dailyAiPool.sort(() => Math.random() - 0.5);
+        }
+        
+        /** (เหมือนเดิม) แปลงคะแนนความสัมพันธ์เป็น Emoji */
+        function getRelationshipEmoji(score) {
+            if (score > 30) return '❤️';
+            if (score < -30) return '💔';
+            return '💛';
+        }
+        
+        /** (เหมือนเดิม) วาด AI ลงในหน้าจอ */
+        function renderPool() {
+            aiPoolContainer.innerHTML = '';
+            gameState.dailyAiPool.forEach((ai, index) => {
+                const aiMasterData = gameState.masterAiList[ai.id];
+                const card = document.createElement('div');
+                card.className = `ai-card ${aiMasterData.initialType}`;
+                card.dataset.id = ai.id;
+                card.dataset.index = index;
+                const emojiSpan = document.createElement('span');
+                emojiSpan.textContent = getRelationshipEmoji(aiMasterData.relationship);
+                card.appendChild(emojiSpan);
+                const streakCounter = document.createElement('div');
+                streakCounter.className = 'streak-counter';
+                if (aiMasterData.streak > 1) {
+                    streakCounter.textContent = aiMasterData.streak;
+                    streakCounter.style.display = 'block';
+                }
+                card.appendChild(streakCounter);
+                card.addEventListener('click', handleAiClick);
+                aiPoolContainer.appendChild(card);
+            });
+        }
+
+        /** (อัปเกรด) เมื่อผู้เล่นคลิก AI (ไม่มี Energy) */
+        function handleAiClick(event) {
+            const card = event.currentTarget;
+            const index = card.dataset.index;
+            const ai = gameState.dailyAiPool[index];
+            const aiMasterData = gameState.masterAiList[ai.id];
+
+            if (ai.visited) {
+                logMessage("คุณเยี่ยมคนนี้ไปแล้ว", 'log-info');
+                return;
+            }
+            
+            // 1. (ใหม่) บันทึกการเยี่ยม (ไม่มี Energy)
+            ai.visited = true;
+            card.classList.add('visited');
+            gameState.dailyVisitedCount++; // (สำคัญ) นับคนเยี่ยม
+            gameState.playerInteractions[aiMasterData.initialType]++;
+            
+            // (ใหม่) กำหนด "เวลา" จาก "ลำดับการคลิก"
+            const clickOrder = gameState.dailyVisitedCount; 
+            
+            // 2. ให้คะแนน "เหรียญบาท"
+            gameState.totalScore += config.SCORE_VISIT;
+            logMessage(`คุณเยี่ยม AI (${ai.id}). (คลิกที่ ${clickOrder}, +${config.SCORE_VISIT} RP)`);
+            
+            // 3. อัปเดตความสัมพันธ์ (ส่ง "เวลา" เข้าไป)
+            updateRelationship(aiMasterData, clickOrder, card.querySelector('span'));
+            
+            // 4. จำลองการตอบกลับ
+            simulateAiResponse(aiMasterData, card.querySelector('.streak-counter'));
+            
+            // 5. อัปเดตหน้าจอ
+            updateUI();
+        }
+        
+        /** (อัปเกรด) อัปเดตความสัมพันธ์ (ใช้ "ลำดับการคลิก" แทน "Energy") */
+        function updateRelationship(aiMasterData, clickOrder, emojiSpan) {
+            if (aiMasterData.preference === 'any') return;
+
+            // (กลไกใหม่) 10 คลิกแรก = เช้า, ที่เหลือ = ค่ำ
+            const time = (clickOrder <= config.MORNING_CLICK_LIMIT) ? 'morning' : 'night';
+            let change = 0;
+            
+            if (aiMasterData.preference === time) {
+                // ถูกเวลา
+                change = config.RELATIONSHIP_CHANGE.RIGHT_TIME;
+                logMessage(`[ถูกเวลา!] AI (${aiMasterData.id}) ชอบที่คุณมาเวลานี้! (ความสัมพันธ์ +${change})`, 'log-time');
+            } else {
+                // ผิดเวลา
+                change = config.RELATIONSHIP_CHANGE.WRONG_TIME;
+                logMessage(`[ผิดเวลา!] AI (${aiMasterData.id}) ไม่ชอบที่คุณมาเวลานี้ (ความสัมพันธ์ ${change})`, 'log-bad');
+            }
+            
+            aiMasterData.relationship = Math.max(config.MIN_RELATIONSHIP, Math.min(config.MAX_RELATIONSHIP, aiMasterData.relationship + change));
+            
+            emojiSpan.textContent = getRelationshipEmoji(aiMasterData.relationship);
+            emojiSpan.style.transform = 'scale(1.3)';
+            setTimeout(() => { emojiSpan.style.transform = 'scale(1)'; }, 200);
+        }
+        
+        /** (เหมือนเดิม) คำนวณโอกาสตอบกลับ */
+        function calculateResponseProb(relationshipScore) {
+            let clampedScore = Math.max(-80, Math.min(80, relationshipScore));
+            let responseChance = 0.5 + (clampedScore / 160) * 0.8;
+            return responseChance;
+        }
+
+        /** (อัปเกรด) จำลองการตอบกลับ (เพิ่มการนับ CS) */
+        function simulateAiResponse(aiMasterData, streakCounter) {
+            const responseChance = calculateResponseProb(aiMasterData.relationship);
+            
+            if (Math.random() < responseChance) {
+                // เยี่ยมกลับ (สำเร็จ)
+                gameState.dailyResponseCount++; // (สำคัญ) นับคนตอบกลับ
+                
+                aiMasterData.streak++;
+                let bonus = config.STREAK_BONUS[aiMasterData.streak] || config.STREAK_BONUS[7];
+                gameState.totalScore += bonus;
+                logMessage(`[ปิดรอบ!] AI (${aiMasterData.id}) เยี่ยมคุณกลับ! (Streak x${aiMasterData.streak}) ได้รับ +${bonus} RP!`, 'log-good');
+                
+                // อัปเดต UI ของ Streak
+                if (aiMasterData.streak > 1) {
+                    streakCounter.textContent = aiMasterData.streak;
+                    streakCounter.style.display = 'block';
+                }
+            } else {
+                // ไม่เยี่ยมกลับ (ล้มเหลว)
+                aiMasterData.streak = 0;
+                logMessage(`[รอเก้อ] AI (${aiMasterData.id}) ไม่ได้เยี่ยมคุณกลับ (Streak หาย)`, 'log-bad');
+            }
+        }
+
+        /** (อัปเกรด) จบวัน (บันทึก CS สำหรับวันพรุ่งนี้) */
+        function endDay() {
+            // (กลไกใหม่) คำนวณ "ความสม่ำเสมอ" (CS)
+            let cs = 0;
+            if (gameState.dailyVisitedCount > 0) {
+                cs = gameState.dailyResponseCount / gameState.dailyVisitedCount;
+            } else {
+                // ถ้าไม่คลิกใครเลย = สม่ำเสมอ 0% (ยกเว้นวันแรก)
+                cs = (gameState.currentDay === 1) ? 1.0 : 0.01; // (กันหาร 0 และลงโทษคนไม่เล่น)
+            }
+            gameState.consistencyScore = cs; // บันทึกไว้ใช้พรุ่งนี้
+            
+            // (เหมือนเดิม) รีเซ็ต Streak และ ลดความสัมพันธ์ ของคนที่ "ไม่ได้เยี่ยม"
+            gameState.dailyAiPool.forEach(ai => {
+                const aiMasterData = gameState.masterAiList[ai.id];
+                if (!ai.visited) {
+                    aiMasterData.streak = 0;
+                    aiMasterData.relationship += config.RELATIONSHIP_CHANGE.NOT_VISITED;
+                }
+            });
+            
+            // ไปวันถัดไป หรือ จบเกม
+            gameState.currentDay++;
+            if (gameState.currentDay > config.MAX_DAYS) {
+                showGameOver();
+            } else {
+                startDay();
+            }
+        }
+
+        /** (อัปเกรด) อัปเดต UI (ลบ Energy, เพิ่ม CS) */
+        function updateUI() {
+            dayCounter.textContent = gameState.currentDay;
+            scoreCounter.textContent = gameState.totalScore;
+            
+            // (กลไกใหม่) อัปเดตแถบ CS (อัตราตอบกลับ) แบบ Real-time
+            let csPercent = 100; // เริ่ม 100%
+            if (gameState.dailyVisitedCount > 0) {
+                csPercent = (gameState.dailyResponseCount / gameState.dailyVisitedCount) * 100;
+            }
+            responseRateFill.style.width = `${csPercent}%`;
+            
+            // เปลี่ยนสีแถบ CS ตามประสิทธิภาพ
+            if (csPercent >= 80) responseRateFill.style.backgroundColor = '#2ecc71'; // ดีมาก
+            else if (csPercent >= 50) responseRateFill.style.backgroundColor = '#3498db'; // ดี
+            else if (csPercent >= 25) responseRateFill.style.backgroundColor = '#f1c40f'; // แย่
+            else responseRateFill.style.backgroundColor = '#e74c3c'; // แย่มาก
+        }
+
+        /** (เหมือนเดิม) เพิ่มข้อความใน Log */
+        function logMessage(message, className = '') {
+            const p = document.createElement('p');
+            p.innerHTML = message;
+            if (className) p.className = className;
+            logContainer.appendChild(p);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        /** (เหมือนเดิม) แสดงหน้าจอจบเกม */
+        function showGameOver() {
+            gamePlayScreen.style.display = 'none';
+            gameOverScreen.style.display = 'block';
+            document.getElementById('final-score').textContent = gameState.totalScore;
+            document.getElementById('final-good').textContent = gameState.playerInteractions.good;
+            document.getElementById('final-medium').textContent = gameState.playerInteractions.medium;
+            document.getElementById('final-bad').textContent = gameState.playerInteractions.bad;
+            
+            let badToGood = 0;
+            let goodToBad = 0;
+            let trueFriends = 0;
+            Object.values(gameState.masterAiList).forEach(ai => {
+                if (ai.initialType === 'bad' && ai.relationship > 30) badToGood++;
+                if (ai.initialType === 'good' && ai.relationship < -30) goodToBad++;
+                if (ai.streak >= 3) trueFriends++;
+            });
+            document.getElementById('bad-to-good').textContent = badToGood;
+            document.getElementById('good-to-bad').textContent = goodToBad;
+            document.getElementById('true-friends').textContent = trueFriends;
+            
+            const finalConsistency = gameState.consistencyScore;
+            let personality = '';
+            if (finalConsistency >= 0.8) {
+                personality = "คุณคือสุดยอดนักปั้นปฏิสัมพันธ์! คุณรู้ว่าควรคุยกับใคร เวลาไหน อัลกอริทึมจึงรักคุณ";
+            } else if (finalConsistency >= 0.5) {
+                personality = "คุณค่อนข้างสม่ำเสมอ แต่บางครั้งก็เผลอไปเยี่ยมคนที่ 'ไม่ใช่' ทำให้อัตราตอบกลับคุณลดลง";
+            } else {
+                personality = "คุณ 'เยี่ยมมั่ว'! (Greedy) คุณพยายามคุยกับทุกคนแม้ว่าเขาจะไม่ชอบคุณ อัลกอริทึมจึงจับคู่คุณกับคนที่นิสัยเหมือนคุณ ผลลัพธ์คือ... เหนื่อยฟรี";
+            }
+            document.getElementById('final-personality').textContent = personality;
+        }
+        
+        /** แชร์ไป Facebook */
+        function shareToFacebook() {
+            const score = gameState.totalScore;
+            const urlToShare = 'https://paulai.site/game3.html';
+            const text = `ฉันเล่นเกม Algorithm Race V3 (No Energy) ได้ ${score} คะแนน! คุณล่ะ?`;
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(urlToShare)}&quote=${encodeURIComponent(text)}`, '_blank');
+        }
+
+        // --- 5. Event Listeners (ตัวดักจับการคลิก) ---
+        nextDayBtn.addEventListener('click', endDay);
+        restartBtn.addEventListener('click', initGame);
+        shareBtn.addEventListener('click', shareToFacebook);
+
+        // --- 6. Start the game (เริ่มเกมครั้งแรก) ---
+        initGame();
+
+    </script>
+</body>
+</html>

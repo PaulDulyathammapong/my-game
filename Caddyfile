@@ -1,0 +1,24 @@
+my-game-production-d713.up.railway.app {
+my-game-production-d713.up.railway.app {
+
+    # Route ?????? API ?????????? POST
+    route /logout {
+        method POST GET HEAD
+        reverse_proxy localhost:{$PORT}
+    }
+    route /api/spendPaul {
+        method POST
+        reverse_proxy localhost:{$PORT}
+    }
+    route /api/earnPaul {
+        method POST
+        reverse_proxy localhost:{$PORT}
+    }
+
+    # Route ????? (GET) ????????????
+    reverse_proxy localhost:{$PORT} {
+        header_up X-Forwarded-Proto {scheme}
+        header_up X-Forwarded-For {remote_host}
+        header_up Host {host}
+    }
+}
