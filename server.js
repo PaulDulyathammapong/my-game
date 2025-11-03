@@ -53,14 +53,18 @@ async function checkPlayerSheetHeaders() {
 // --- 4. การตั้งค่า Middleware ---
 const corsOptions = {
   origin: function (origin, callback) {
-    // (เพิ่ม Regex \.scf\.usercontent\.goog$ เพื่ออนุญาตหน้า Preview)
-    const allowedOriginRegex = /\.scf\.usercontent\.goog$/;
+    
+    // (*** แก้ไข ***)
+    // เปลี่ยนวิธีเขียน Regex ให้ปลอดภัยขึ้น
+    const allowedOriginRegex = new RegExp("\\.scf\\.usercontent\\.goog$");
+    // (*** จบการแก้ไข ***)
+
     const allowedOrigins = ['http://localhost:5001', 'http://127.0.0.1:5001', 'https://paulai.site'];
     
     if (!origin || allowedOrigins.indexOf(origin) !== -1 || (origin && allowedOriginRegex.test(origin))) {
       callback(null, true);
     } else {
-      console.warn(`CORS blocked for origin: ${origin}`); // เพิ่ม log
+      console.warn(`CORS blocked for origin: ${origin}`); 
       callback(new Error('Not allowed by CORS'));
     }
   }, credentials: true
@@ -179,4 +183,5 @@ app.post('/api/earnPaul', ensureAuthenticated, async (req, res) => {
 setupGoogleSheets().then(() => {
     app.listen(port, () => { console.log(`Server listening on port ${port}`); });
 }).catch(err => { console.error("Failed setup. Server exit.", err); process.exit(1); });
+
 
