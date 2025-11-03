@@ -1,5 +1,4 @@
-
-// --- 1. ?????????????????? ---
+// --- 1. การนำเข้าโมดูลที่จำเป็น ---
 const express = require('express');
 const cors = require('cors');
 const { GoogleSpreadsheet } = require('google-spreadsheet');
@@ -8,15 +7,15 @@ const passport = require('passport');
 const FacebookStrategy = require('passport-facebook').Strategy;
 require('dotenv').config();
 
-// --- 2. ?????????????????? ---
+// --- 2. การตั้งค่า Express App ---
 const app = express();
 const port = process.env.PORT || 3000;
 
-// --- 3. ??????? Google Sheets ---
+// --- 3. การเชื่อมต่อ Google Sheets ---
 const SHEET_ID = '1UkD6xPmXns7i9tkIEJwrMCO2Dm-k-nwsxXtBL4NUtZQ';
 const doc = new GoogleSpreadsheet(SHEET_ID);
-// let statsWorksheet; // (??????????)
-let playerWorksheet; // ?????????????????????? (?????)
+// let statsWorksheet; // (ยกเลิกการใช้งาน)
+let playerWorksheet; // สำหรับเก็บข้อมูลผู้เล่น (สำคัญ)
 
 async function setupGoogleSheets() {
     try {
@@ -24,9 +23,9 @@ async function setupGoogleSheets() {
         const creds = JSON.parse(process.env.GOOGLE_CREDENTIALS);
         await doc.useServiceAccountAuth({ client_email: creds.client_email, private_key: creds.private_key });
         await doc.loadInfo();
-        // statsWorksheet = doc.sheetsByTitle['SpotTheDifference']; // (??????????)
-        playerWorksheet = doc.sheetsByTitle['PlayerData']; // ???????????????
-        // if (!statsWorksheet) console.warn("!!! Warning: Stats worksheet not found."); // (??????????)
+        // statsWorksheet = doc.sheetsByTitle['SpotTheDifference']; // (ยกเลิกการใช้งาน)
+        playerWorksheet = doc.sheetsByTitle['PlayerData']; // ชีตข้อมูลผู้เล่น
+        // if (!statsWorksheet) console.warn("!!! Warning: Stats worksheet not found."); // (ยกเลิกการใช้งาน)
         if (!playerWorksheet) throw new Error("!!! Critical Error: Player data worksheet ('PlayerData') not found.");
         console.log('Google Sheets: Authenticated and Loaded PlayerData.');
         await checkPlayerSheetHeaders();
@@ -51,19 +50,26 @@ async function checkPlayerSheetHeaders() {
     }
 }
 
-// --- 4. ??????? Express App ---
+// --- 4. การตั้งค่า Middleware ---
 const corsOptions = {
   origin: function (origin, callback) {
+    // (เพิ่ม Regex \.scf\.usercontent\.goog$ เพื่ออนุญาตหน้า Preview)
+    const allowedOriginRegex = /\.scf\.usercontent\.goog$/;
     const allowedOrigins = ['http://localhost:5001', 'http://127.0.0.1:5001', 'https://paulai.site'];
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) { callback(null, true); }
-    else { callback(new Error('Not allowed by CORS')); }
+    
+    if (!origin || allowedOrigins.indexOf(origin) !== -1 || (origin && allowedOriginRegex.test(origin))) {
+      callback(null, true);
+    } else {
+      console.warn(`CORS blocked for origin: ${origin}`); // เพิ่ม log
+      callback(new Error('Not allowed by CORS'));
+    }
   }, credentials: true
 };
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// --- 5. ??????? Session ??? Passport ---
+// --- 5. การตั้งค่า Session และ Passport (Facebook Login) ---
 if (!process.env.SESSION_SECRET) { console.error('!!! SESSION_SECRET missing.'); process.exit(1); }
 if (process.env.NODE_ENV === 'production') { app.set('trust proxy', 1); }
 app.use(session({
@@ -105,17 +111,17 @@ passport.deserializeUser((user, done) => { done(null, user); });
 
 // --- 6. API Endpoints ---
 
-// (API /stats ??? /increment ??????????????)
+// (API /stats และ /increment ถูกยกเลิกการใช้งาน)
 /*
 app.get('/stats', async (req, res) => {
-    // ... ???????? ...
+    // ... โค้ดเก่า ...
 });
 app.post('/increment', async (req, res) => {
-    // ... ???????? ...
+    // ... โค้ดเก่า ...
 });
 */
 
-// --- API ?????? Login/User ---
+// --- API สำหรับ Login/User ---
 app.get('/auth/facebook', (req, res, next) => {
     console.log(`[${new Date().toISOString()}] Received request for /auth/facebook`);
     try {
@@ -141,28 +147,36 @@ app.get('/api/user', (req, res) => {
     if(req.isAuthenticated()){res.json({loggedIn:true,user:{id:req.user.id,name:req.user.name,paulBalance:req.user.paulBalance}});}else{res.json({loggedIn:false});}
 });
 app.post('/logout', (req, res, next) => {
-    req.logout(function(err){if(err){return next(err);}req.session.destroy((err)=>{if(err){console.error("Session destroy err:",err);return res.status(500).json({error:'Logout failed'});}res.clearCookie('connect.sid');console.log("Logout OK");res.status(
+    req.logout(function(err){if(err){return next(err);}req.session.destroy((err)=>{if(err){console.error("Session destroy err:",err);return res.status(500).json({error:'Logout failed'});}res.clearCookie('connect.sid');console.log("Logout OK");res.status(200).json({success:true});});});
 });
 
-// --- API ???????????? Paul Coin ---
+// --- API สำหรับจัดการ Paul Coin ---
 function ensureAuthenticated(req, res, next) {
     if(req.isAuthenticated()){return next();}console.warn("Unauthorized API attempt.");res.status(401).json({error:'Not authenticated'});
 }
 async function updateUserBalance(userId, amountChange) {
-    if(!playerWorksheet){throw new Error("Player sheet unavailable");}await playerWorksheet.loadHeaderRow();const rows=await playerWorksheet.getRows();const userRow=rows.find(r=>r.get('FacebookID')===userId);if(!userRow){throw new Error(`User ${userId} n
+    if(!playerWorksheet){throw new Error("Player sheet unavailable");}await playerWorksheet.loadHeaderRow();const rows=await playerWorksheet.getRows();const userRow=rows.find(r=>r.get('FacebookID')===userId);if(!userRow){throw new Error(`User ${userId} not found`);}
+    let currentBalance = parseInt(userRow.get('PaulBalance') || '0');
+    if (isNaN(currentBalance)) currentBalance = 0;
+    const newBalance = currentBalance + amountChange;
+    if (newBalance < 0) { throw new Error("Insufficient balance"); }
+    userRow.set('PaulBalance', newBalance.toString());
+    await userRow.save();
+    return newBalance;
 }
 app.post('/api/spendPaul', ensureAuthenticated, async (req, res) => {
-    const amount=parseInt(req.body.amount||'0');const userId=req.user.id;if(amount<=0)return res.status(400).json({error:'Invalid amount'});try{const nb=await updateUserBalance(userId,-amount);req.user.paulBalance=nb;
+    const amount=parseInt(req.body.amount||'0');const userId=req.user.id;if(amount<=0)return res.status(400).json({error:'Invalid amount'});try{const nb=await updateUserBalance(userId,-amount);req.user.paulBalance=nb; // อัปเดต session
     res.json({ success: true, newBalance: nb });
     }catch(error){console.error(`Spend err ${userId}:`,error.message);if(error.message==="Insufficient balance"){res.status(400).json({error:'Insufficient balance'});}else{res.status(500).json({error:'Update balance failed'});}}
 });
 app.post('/api/earnPaul', ensureAuthenticated, async (req, res) => {
-    const amount=parseInt(req.body.amount||'0');const reason=req.body.reason||'unknown';const userId=req.user.id;if(amount<=0)return res.status(400).json({error:'Invalid amount'});try{const nb=await updateUserBalance(userId,amount);req.user.paulBalance=n
+    const amount=parseInt(req.body.amount||'0');const reason=req.body.reason||'unknown';const userId=req.user.id;if(amount<=0)return res.status(400).json({error:'Invalid amount'});try{const nb=await updateUserBalance(userId,amount);req.user.paulBalance=nb; // อัปเดต session
     res.json({ success: true, newBalance: nb });
     }catch(error){console.error(`Earn err ${userId}:`,error.message);res.status(500).json({error:'Update balance failed'});}
 });
 
-// --- 7. ????????????? ---
+// --- 7. เริ่มการทำงานของ Server ---
 setupGoogleSheets().then(() => {
     app.listen(port, () => { console.log(`Server listening on port ${port}`); });
 }).catch(err => { console.error("Failed setup. Server exit.", err); process.exit(1); });
+
